@@ -43,19 +43,32 @@ function showProducts() {
             connection.query(
                 "SELECT * FROM products WHERE ?", {item_id: answer.choice}, function(err, res) {
                     if (err) throw err;
-                    console.log(res[0].stock_quantity);
+                    // console.log(res[0].stock_quantity);
                     if (parseInt(res[0].stock_quantity) >= (answer.amount)) {
                         var total = parseFloat(res[0].price) * (answer.amount);
 
                         console.log(`Your total is: $${total}`);
-                        updateStock(answer.amount);
-                    } else {
+
+                            var amount = parseInt(res[0].stock_quantity) - answer.amount;
+
+                            var sale = total + parseFloat(res[0].product_sales);
+
+                            // console.log(sale);
+
+                            updateStock(amount, answer.choice, sale);
+
+
+                        } else {
                         console.log("We're sorry, we don't have that many in stock.");
                         goOn();
                     }
-                }
-            )
-        })})}
+
+                })
+            })
+        })
+    };
+
+
 
 function goOn() {
     inquirer.prompt([
@@ -72,4 +85,25 @@ function goOn() {
             connection.end();
         }
     })
-}
+};
+
+function updateStock(amount, id, sales) {
+
+    connection.query(
+        "UPDATE products SET ? WHERE ?",
+        [
+            {
+               stock_quantity: amount,
+               product_sales: sales
+            },
+            {
+                item_id: id
+            }
+        ],
+        function(err) {
+            if(err) throw err;
+
+            console.log("Product quantity updated.");
+            goOn();
+        }
+    )}
